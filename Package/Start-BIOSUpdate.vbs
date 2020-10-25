@@ -24,5 +24,5 @@ set WSshell = CreateObject("WScript.Shell")
 WSshell.CurrentDirectory = WSshell.ExpandEnvironmentStrings("%TEMP%")
 
 'Launch Powershell hidden
-'ReturnValue = WSshell.Run(StrCommand,0,true)  '0=run Hidden, true=Wait for exit
+ReturnValue = WSshell.Run(StrCommand,0,true)  '0=run Hidden, true=Wait for exit
 WScript.Quit(ReturnValue)
