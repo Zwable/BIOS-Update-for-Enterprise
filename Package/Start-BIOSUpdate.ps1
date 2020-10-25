@@ -22,31 +22,28 @@
 ################################################
 
 param(
-    $FilesRoot = "$PSScriptRoot\Files"
+    $BiosFilesRoot = "$PSScriptRoot\Files"
 )
+
+#Dot Source
+. "$PSScriptRoot\lib.ps1"
 
 #Start transcript.
 Start-Transcript -Path ("$env:SystemRoot\Logs\Software\BIOS-Update-" + (Get-Date).ToString("ddMMyyyy") + ".log") -Append -Force
 
 #First check if the location excists
-If(!(Test-Path $FilesRoot)){
-    Write-Host "No access to files folder '$($FilesRoot), exiting.."
+If(!(Test-Path $BiosFilesRoot)){
+    Write-Host "No access to files folder '$($BiosFilesRoot), exiting.."
     #Stop transcript
     Stop-Transcript
     Exit 1337
 }
 
-# Dot Source library and define variables
-. "$PSScriptRoot\lib.ps1"
-$BiosFilesRoot = "$FilesRoot\BIOS Updates"
-$TempFilesDestination = "$env:temp\BIOS Upgrade" #This folder will get deleted on exit!
-$Global:MinimumBatteryPercentage = 80
-$DellIgnoredExitcodes = @("2")
-$HPIgnoredExitcodes = @("282")
-$LenovoIgnoredExitcodes = @("-1","1")
+#Temp folder for BIOS files
+$TempFilesDestination = "$env:temp\BIOS Upgrade" #This folder will get deleted after the BIOS update has been performed!
 
 #Get the manufacturer of the running PC
-$LocalManufacturer = (Get-WmiObject -Class win32_bios).Manufacturer
+$LocalManufacturer = (Get-WmiObject -Class Win32_Bios).Manufacturer
 
 #Get the bios version of the running PC
 $SMBIOSBIOSVersion = (Get-WmiObject Win32_Bios).SMBIOSBIOSVersion
@@ -122,8 +119,22 @@ if($LocalManufacturer -eq "Dell Inc."){
     }
 }
 
+#Get last successful
+[Globalization.CultureInfo]$Culture = Get-Culture
+[nullable[datetime]]$LastBootUpTime = (Get-Date -ErrorAction 'Stop') - ([timespan]::FromMilliseconds([math]::Abs([Environment]::TickCount)))
+[nullable[datetime]]$LastRunTime = [datetime]::Parse((Get-ItemProperty -Path "HKLM:\Software\BIOSUpdateForEnterprise" -Name 'Date' -ErrorAction 'SilentlyContinue').Date, $Culture) 
+
+#Checking if the machine has rebooted since the last successfull run
+if(!($LastBootUpTime -gt $LastRunTime)){
+
+    #Exit the script without the users knowledge
+    Write-Host "This machine was not rebooted (boot time $LastBootUpTime ) since last successfull run (last run $LastRunTime), exiting"
+    Stop-Transcript
+    Exit 0
+}
+
 #Write host
-Write-Host "Setting BIOS settings for the model '$Model'"
+Write-Host "Running BIOS upgrade for the model '$Model'"
 
 #If there is a file
 if(($UpgradeInfo).BiosFilePath){
@@ -149,16 +160,6 @@ if(($UpgradeInfo).BiosFilePath){
     Stop-Transcript
     Exit 0
 }
-
-#Define text
-$HeaderText = $($UpgradeInfo.Model)
-$BodyText = 
-@"
-Due to security and system stability the BIOS/firmware of your PC needs to be patched.
-
-As BIOS is stored in the flash memory of the baseboard chip, the installation will continue on the next reboot (which is not enforced), after this installation.
-"@
-$BottomText = "Installation will automatically start when requirements are met:`n-More than $MinimumBatteryPercentage`% of battery charged.`n-AC adapter plugged in."
 
 try {
 
@@ -190,4 +191,4 @@ catch {
 }
 
 #Show message and start
-Show-WPFMessage
+Show-WPFMessage -Model $($UpgradeInfo.Model)

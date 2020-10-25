@@ -14,10 +14,15 @@ For Each strArg in objArgs
 	End If
 Next
 
+'Define commanline
 StrCommand = ("powershell.exe -ExecutionPolicy Bypass -nologo -File """&strN0&"""" & StrAllArg)
-'wscript.echo StrCommand
+
+'Create object
 set WSshell = CreateObject("WScript.Shell")
 
+'Change directory in case the scipt path gets removed (Makes Start-Job fail in powershell)
+WSshell.CurrentDirectory = WSshell.ExpandEnvironmentStrings("%TEMP%")
+
 'Launch Powershell hidden
-ReturnValue = WSshell.Run(StrCommand,0,true)  '0=run Hidden, true=Wait for exit
+'ReturnValue = WSshell.Run(StrCommand,0,true)  '0=run Hidden, true=Wait for exit
 WScript.Quit(ReturnValue)
