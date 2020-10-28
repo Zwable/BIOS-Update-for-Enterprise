@@ -20,7 +20,7 @@ StrCommand = ("powershell.exe -ExecutionPolicy Bypass -nologo -File """&strN0&""
 'Create object
 set WSshell = CreateObject("WScript.Shell")
 
-'Change directory in case the scipt path gets removed (Makes Start-Job fail in powershell)
+'Change directory in case the scipt path gets removed (Makes Start-Job fail in powershell) 
 WSshell.CurrentDirectory = WSshell.ExpandEnvironmentStrings("%TEMP%")
 
 'Launch Powershell hidden
