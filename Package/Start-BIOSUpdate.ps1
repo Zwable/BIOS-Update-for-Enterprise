@@ -65,8 +65,8 @@ if($LocalManufacturer -eq "Dell Inc."){
         #Dell has a mix of version numbers and reference numbers such as A08 or 1.3.12, can be handled by powershell comparer
         $UpgradeInfo.Add('Manufacturer', "Dell")
         $UpgradeInfo.Add('Model',  $Model)
-        $UpgradeInfo.Add('CurrentBiosVersion', $SMBIOSBIOSVersion)
-        $UpgradeInfo.Add('AvailableBiosVersion', (($BiosFile).BaseName).Split("_")[1])
+        $UpgradeInfo.Add('CurrentBiosVersion',  [System.Version]$SMBIOSBIOSVersion)
+        $UpgradeInfo.Add('AvailableBiosVersion',  [System.Version](($BiosFile).BaseName).Split("_")[1])
         $UpgradeInfo.Add('BiosFilePath', $BiosFile.FullName)
         $UpgradeInfo.Add('TempRoot', $TempFilesDestination)
         $UpgradeInfo.Add('TempBiosFilePath', ("$TempFilesDestination\$($BiosFile.Name)"))
