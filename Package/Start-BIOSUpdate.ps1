@@ -110,8 +110,8 @@ if($LocalManufacturer -eq "Dell Inc."){
         #Define info
         $UpgradeInfo.Add('Manufacturer', "Lenovo")
         $UpgradeInfo.Add('Model', $Model)
-        $UpgradeInfo.Add('CurrentBiosVersion', ([regex]::Matches($SMBIOSBIOSVersion, "\d+(\.\d+)+").Value) )
-        $UpgradeInfo.Add('AvailableBiosVersion', ([regex]::Matches(($($BiosFile.BaseName)).Split("_")[1], "\d+(\.\d+)+").Value))
+        $UpgradeInfo.Add('CurrentBiosVersion', [System.Version]([regex]::Matches($SMBIOSBIOSVersion, "\d+(\.\d+)+").Value) )
+        $UpgradeInfo.Add('AvailableBiosVersion', [System.Version]([regex]::Matches(($($BiosFile.BaseName)).Split("_")[1], "\d+(\.\d+)+").Value))
         $UpgradeInfo.Add('BiosFilePath', $($BiosFile.FullName))
         $UpgradeInfo.Add('TempRoot', $TempFilesDestination)
         $UpgradeInfo.Add('TempBiosFilePath', ("$TempFilesDestination\$($BiosFile.Name)"))
@@ -142,7 +142,7 @@ if(($UpgradeInfo).BiosFilePath){
     Write-Host "Current installed version is '$($UpgradeInfo.CurrentBiosVersion)' and the available one is '$($UpgradeInfo.AvailableBiosVersion)'"
 
     #Brek if current installed version is greater or equals to the available one
-    if([System.Version]$($UpgradeInfo.CurrentBiosVersion) -ge [System.Version]$($UpgradeInfo.AvailableBiosVersion)){
+    if($($UpgradeInfo.CurrentBiosVersion) -ge $($UpgradeInfo.AvailableBiosVersion)){
 
         #Write host
         Write-Host "Current installed version is compliant or higher than the available one, exiting..."
