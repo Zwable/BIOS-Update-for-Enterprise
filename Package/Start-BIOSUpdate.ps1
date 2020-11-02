@@ -142,7 +142,7 @@ if(($UpgradeInfo).BiosFilePath){
     Write-Host "Current installed version is '$($UpgradeInfo.CurrentBiosVersion)' and the available one is '$($UpgradeInfo.AvailableBiosVersion)'"
 
     #Brek if current installed version is greater or equals to the available one
-    if($($UpgradeInfo.CurrentBiosVersion) -ge $($UpgradeInfo.AvailableBiosVersion)){
+    if([System.Version]$($UpgradeInfo.CurrentBiosVersion) -ge [System.Version]$($UpgradeInfo.AvailableBiosVersion)){
 
         #Write host
         Write-Host "Current installed version is compliant or higher than the available one, exiting..."
