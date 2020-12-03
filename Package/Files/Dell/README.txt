@@ -13,6 +13,3 @@ The version is the System BIOS Version .
 Naming Examples:
 System BIOS file for Latitude E5270, Latitude E5470, Latitude E5570 and Precision 3510
 Latitude E5270;Latitude E5470;Latitude E5570;Precision 3510;_1.19.3.exe
-
-System BIOS file for Latitude E5440
-Latitude E5440;_A23.exe
