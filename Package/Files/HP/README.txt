@@ -1,5 +1,5 @@
-The naming of the HP System BIOS files should be:
-<Family>_<Version>.exe
+The bios files are extracted using HPs bios exe.The naming of the HP System BIOS files should be:
+<Model>;<Model>;_<Version>.bin
 
 <Model>
 Elevated PowerShel prompt on the local machine:
@@ -11,5 +11,5 @@ $Models = (Get-WmiObject -Namespace "root\SMS\SITE_$($SiteCode)" -Query "Select 
 The version is the System BIOS Version .
 
 Naming Examples:
-System BIOS Update file for HP ProDesk 600 G2
-N02_02.37.bin
+System BIOS Update file for HP Z440 Workstation
+ HP Z440 Workstation;_02.56.bin
