@@ -15,7 +15,7 @@
     .NOTES
     Author: Morten Rønborg
     Date: 28-03-2019
-    Last Updated: 20-10-2019
+    Last Updated: 03-12-2020
     https://www.zwable.com
 
 #>
@@ -42,11 +42,14 @@ If(!(Test-Path $BiosFilesRoot)){
 #Temp folder for BIOS files
 $TempFilesDestination = "$env:temp\BIOS Upgrade" #This folder will get deleted after the BIOS update has been performed!
 
+#Get systeminfo
+$SystemInfo = (Get-WmiObject -Namespace root\wmi MS_SystemInformation)
+
 #Get the manufacturer of the running PC
-$LocalManufacturer = (Get-WmiObject -Class Win32_Bios).Manufacturer
+$LocalManufacturer = $SystemInfo.SystemManufacturer
 
 #Get the bios version of the running PC
-$SMBIOSBIOSVersion = (Get-WmiObject Win32_Bios).SMBIOSBIOSVersion
+[System.Version]$BIOSVersion = ([string]$SystemInfo.BiosMajorRelease + "." + [string]$SystemInfo.BiosMinorRelease)
 
 #Declare hashtable
 [hashtable]$Global:UpgradeInfo = @{}
@@ -55,18 +58,18 @@ $SMBIOSBIOSVersion = (Get-WmiObject Win32_Bios).SMBIOSBIOSVersion
 if($LocalManufacturer -eq "Dell Inc."){
 
     #Define dell specific variables
-    $Model = (Get-WmiObject -Class Win32_ComputerSystem).Model
+    $Model = $SystemInfo.SystemProductName
 
     #Add to hashtable
     $UpgradeInfo.Add('ManufacturerFileRoot', "$BiosFilesRoot\Dell")
 
     if($BiosFile = (Get-ChildItem -Path "$($UpgradeInfo.ManufacturerFileRoot)\*$Model;*" -ErrorAction SilentlyContinue)){
 
-        #Dell has a mix of version numbers and reference numbers such as A08 or 1.3.12, can be handled by powershell comparer
+        #Define info
         $UpgradeInfo.Add('Manufacturer', "Dell")
         $UpgradeInfo.Add('Model',  $Model)
-        $UpgradeInfo.Add('CurrentBiosVersion',  [System.Version]$SMBIOSBIOSVersion)
-        $UpgradeInfo.Add('AvailableBiosVersion',  [System.Version](($BiosFile).BaseName).Split("_")[1])
+        $UpgradeInfo.Add('CurrentBiosVersion', $BIOSVersion)
+        $UpgradeInfo.Add('AvailableBiosVersion', [System.Version]([regex]::Matches(($($BiosFile.BaseName)).Split("_")[1], "\d+(\.\d+)+").Value))
         $UpgradeInfo.Add('BiosFilePath', $BiosFile.FullName)
         $UpgradeInfo.Add('TempRoot', $TempFilesDestination)
         $UpgradeInfo.Add('TempBiosFilePath', ("$TempFilesDestination\$($BiosFile.Name)"))
@@ -76,18 +79,17 @@ if($LocalManufacturer -eq "Dell Inc."){
 }elseif($LocalManufacturer -eq "Hewlett-Packard"){
 
     #Define HP specific variables
-    $Model = (Get-WmiObject -Class Win32_ComputerSystem).Model
+    $Model = $SystemInfo.SystemProductName
 
     #Add to hashtable, HP uses a family alias for supporting multiple devices with the same file
     $UpgradeInfo.Add('ManufacturerFileRoot',  "$BiosFilesRoot\HP")
-    $BIOSFamily = ($SMBIOSBIOSVersion).Split(" ")[0]
 
-    if($BiosFile = (Get-ChildItem -Path "$($UpgradeInfo.ManufacturerFileRoot)\*$BIOSFamily*" -ErrorAction SilentlyContinue)){
+    if($BiosFile = (Get-ChildItem -Path "$($UpgradeInfo.ManufacturerFileRoot)\*$Model;*" -ErrorAction SilentlyContinue)){
 
         #Define info
         $UpgradeInfo.Add('Manufacturer', "HP")
         $UpgradeInfo.Add('Model', $Model)
-        $UpgradeInfo.Add('CurrentBiosVersion', [System.Version]([regex]::Matches($SMBIOSBIOSVersion, "\d+(\.\d+)+").Value))
+        $UpgradeInfo.Add('CurrentBiosVersion', $BIOSVersion)
         $UpgradeInfo.Add('AvailableBiosVersion', [System.Version]([regex]::Matches(($($BiosFile.BaseName)).Split("_")[1], "\d+(\.\d+)+").Value))
         $UpgradeInfo.Add('BiosFilePath', $BiosFile.FullName)
         $UpgradeInfo.Add('HPBiosFlashToolPath', "$BiosFilesRoot\HP\HPBIOSUPDREC64.exe")
@@ -100,7 +102,7 @@ if($LocalManufacturer -eq "Dell Inc."){
 }elseif($LocalManufacturer -eq "Lenovo"){
 
     #Define Lenovo specific variables
-    $Model = (Get-WmiObject -Class Win32_ComputerSystemProduct).Version
+    $Model = $SystemInfo.SystemVersion
 
     #Add to hashtable
     $UpgradeInfo.Add('ManufacturerFileRoot',  "$BiosFilesRoot\Lenovo")
@@ -110,7 +112,7 @@ if($LocalManufacturer -eq "Dell Inc."){
         #Define info
         $UpgradeInfo.Add('Manufacturer', "Lenovo")
         $UpgradeInfo.Add('Model', $Model)
-        $UpgradeInfo.Add('CurrentBiosVersion', [System.Version]([regex]::Matches($SMBIOSBIOSVersion, "\d+(\.\d+)+").Value) )
+        $UpgradeInfo.Add('CurrentBiosVersion', $BIOSVersion)
         $UpgradeInfo.Add('AvailableBiosVersion', [System.Version]([regex]::Matches(($($BiosFile.BaseName)).Split("_")[1], "\d+(\.\d+)+").Value))
         $UpgradeInfo.Add('BiosFilePath', $($BiosFile.FullName))
         $UpgradeInfo.Add('TempRoot', $TempFilesDestination)
