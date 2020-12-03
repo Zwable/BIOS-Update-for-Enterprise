@@ -124,15 +124,18 @@ if($LocalManufacturer -eq "Dell Inc."){
 #Get last successful
 [Globalization.CultureInfo]$Culture = Get-Culture
 [nullable[datetime]]$LastBootUpTime = (Get-Date -ErrorAction 'Stop') - ([timespan]::FromMilliseconds([math]::Abs([Environment]::TickCount)))
-[nullable[datetime]]$LastRunTime = [datetime]::Parse((Get-ItemProperty -Path "HKLM:\Software\BIOSUpdateForEnterprise" -Name 'Date' -ErrorAction 'SilentlyContinue').Date, $Culture) 
+$LastRunTimeRegKey = (Get-ItemProperty -Path "HKLM:\Software\BIOSUpdateForEnterprise" -Name 'Date' -ErrorAction 'SilentlyContinue').Date
+if ($LastRunTimeRegKey) {
+    [nullable[datetime]]$LastRunTime = [datetime]::Parse($LastRunTimeRegKey, $Culture) 
 
-#Checking if the machine has rebooted since the last successfull run
-if(!($LastBootUpTime -gt $LastRunTime)){
+    #Checking if the machine has rebooted since the last successfull run
+    if(!($LastBootUpTime -gt $LastRunTime)){
 
-    #Exit the script without the users knowledge
-    Write-Host "This machine was not rebooted (boot time $LastBootUpTime ) since last successfull run (last run $LastRunTime), exiting"
-    Stop-Transcript
-    Exit 0
+        #Exit the script without the users knowledge
+        Write-Host "This machine was not rebooted (boot time $LastBootUpTime) since last successfull run (last run $LastRunTime), exiting"
+        Stop-Transcript
+        Exit 0
+    }
 }
 
 #Write host
